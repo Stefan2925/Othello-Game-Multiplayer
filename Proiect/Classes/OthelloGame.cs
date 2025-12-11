@@ -28,6 +28,7 @@ namespace Proiect
         private Panel Panou;
         private Tabla tabla;
         private  culoareJucator culoareCurenta;
+        Graphics g;
 
         public OthelloGame( culoareJucator currentPlayer,Panel Panou)
         {
@@ -36,8 +37,8 @@ namespace Proiect
             this.culoareCurenta = currentPlayer;
             this.Panou = Panou;
 
-            Panou.Paint += BoardPanel_Paint;
-            Panou.MouseClick += Actiune_Click;
+            Panou.Paint += _Paint;
+            Panou.MouseClick += Click;
 
         }
 
@@ -47,9 +48,7 @@ namespace Proiect
         {
             if (!CuprindeTabla(x, y) || tabla.Grid[x, y] != null)
             {
-                MessageBox.Show("No valid moves!", "Othello", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-
+              
                 return false;
             }
 
@@ -107,9 +106,7 @@ namespace Proiect
 
         public void PunePiesa(int x, int y)
         {
-            if (!MutareValida(x, y)) return;
 
-           
 
             if (culoareCurenta == culoareJucator.White)
                 tabla.Grid[x, y] = new PiesaAlba();
@@ -197,23 +194,24 @@ namespace Proiect
         }
 
 
-        private void Actiune_Click(object sender, MouseEventArgs e)
+        private void Click(object sender, MouseEventArgs e)
         {
             int usableSize = Panou.Width - 2 * MARGINE;
             int tileSize = usableSize / 8;
 
-            int c = (e.X - MARGINE) / tileSize;
-            int r = (e.Y - MARGINE) / tileSize;
+            int l = (e.Y - MARGINE) / tileSize; 
+            int c = (e.X - MARGINE) / tileSize;  
 
-           
-            if (r >= 0 && r < 8 && c >= 0 && c < 8)
+
+            if (l >= 0 && l < 8 && c >= 0 && c < 8)
             {
-                linieSelectata = r;
+                linieSelectata = l;
                 coloanaSelectata = c;
+                    
 
                 
-                if (MutareValida(r, c))
-                    PunePiesa(r, c);
+                if (MutareValida(l, c))
+                    PunePiesa(l, c);
                 Panou.Invalidate();
 
             }
@@ -222,9 +220,9 @@ namespace Proiect
        
 
 
-        private void BoardPanel_Paint(object sender, PaintEventArgs e)
+        private void _Paint(object sender, PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
+            g = e.Graphics;
            
   
             int usableSize = Panou.Width - 2 * MARGINE;

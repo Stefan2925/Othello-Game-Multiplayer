@@ -30,11 +30,7 @@ namespace Proiect
         {
             InitializeComponent();
          
-            this.DoubleBuffered = true;
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
-                   ControlStyles.UserPaint |
-                   ControlStyles.DoubleBuffer, true);
-            this.UpdateStyles();
+            
            
             game = new OthelloGame( culoareJucator.Black, Panou);
 

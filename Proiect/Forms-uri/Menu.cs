@@ -27,13 +27,11 @@ namespace Proiect
         {
 
             InitializeComponent();
-            this.Resize += Form1_Resize;
-            this.DoubleBuffered = true;
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
-                          ControlStyles.UserPaint |
-                          ControlStyles.DoubleBuffer, true);
-            this.UpdateStyles();
+            
 
+        
+
+            this.Resize += Form1_Resize;
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -84,8 +82,8 @@ namespace Proiect
         private void Button_Offline(object sender, EventArgs e)
         {
             GameWindow joc = new GameWindow();
-            joc.Show();
-            this.Hide(); 
+            joc.ShowDialog();
+            this.Close(); 
         }
     }
 }
