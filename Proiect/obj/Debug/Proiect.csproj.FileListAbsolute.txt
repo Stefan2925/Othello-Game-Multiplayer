@@ -10,3 +10,5 @@ C:\ProiectPOO\Proiect\Proiect\bin\Debug\Proiect.pdb
 C:\ProiectPOO\Proiect\Proiect\obj\Debug\Proiect.exe
 C:\ProiectPOO\Proiect\Proiect\obj\Debug\Proiect.pdb
 C:\ProiectPOO\Proiect\Proiect\obj\Debug\Proiect.exe.config
+C:\ProiectPOO\Proiect\Proiect\obj\Debug\Proiect.Forms.Retea.resources
+C:\ProiectPOO\Proiect\Proiect\obj\Debug\Proiect.Forms.Multiplayer.resources

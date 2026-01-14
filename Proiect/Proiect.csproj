@@ -50,28 +50,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\PiesaAlba.cs" />
+    <Compile Include="Classes\PiesaNeagra.cs" />
     <Compile Include="Classes\Tabla.cs" />
-    <Compile Include="Forms-uri\Menu.cs">
+    <Compile Include="Forms\Menu.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms-uri\Menu.Designer.cs">
+    <Compile Include="Forms\Menu.Designer.cs">
       <DependentUpon>Menu.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms-uri\GameWindow.cs">
+    <Compile Include="Forms\GameWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms-uri\GameWindow.Designer.cs">
+    <Compile Include="Forms\GameWindow.Designer.cs">
       <DependentUpon>GameWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Classes\OthelloGame.cs" />
     <Compile Include="Classes\Piesa.cs" />
     <Compile Include="Classes\Program.cs" />
+    <Compile Include="Forms\Multiplayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Retea.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Forms-uri\Menu.resx">
+    <EmbeddedResource Include="Forms\Menu.resx">
       <DependentUpon>Menu.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms-uri\GameWindow.resx">
+    <EmbeddedResource Include="Forms\GameWindow.resx">
       <DependentUpon>GameWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Multiplayer.resx">
+      <DependentUpon>Multiplayer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Retea.resx">
+      <DependentUpon>Retea.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <SubType>Designer</SubType>

@@ -1,157 +1,187 @@
-﻿using System;
+﻿using Proiect.Forms;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Proiect
 {
-    internal class OthelloGame
+    public class OthelloGame
     {
-        private int linieSelectata= -1;
-        private int coloanaSelectata = -1;
+       
+        private List<(int x, int y)> mutariValide = new List<(int x, int y)>();
 
-        const int MARGINE = 30;
-   
+        private const int margine = 30;
+        private culoareJucator culoareCurenta;
 
-        private readonly (int x, int y)[] directions =
+        private readonly (int x, int y)[] directii = new (int x, int y)[]
         {
+            (-1, -1), (-1, 0), (-1, 1),
+            (0, -1),          (0, 1),
+            (1, -1), (1, 0),  (1, 1)
+        };
 
-                (-1,-1), (-1,0), (-1,1),
-                (0,-1),         (0,1),
-                (1,-1), (1,0), (1,1)
-
-
-            };
-        private Panel Panou;
+        private Panel panou;
         private Tabla tabla;
-        private  culoareJucator culoareCurenta;
-        Graphics g;
+        private Graphics grafici;
 
-        public OthelloGame( culoareJucator currentPlayer,Panel Panou)
+      
+
+        public OthelloGame(culoareJucator jucatorCurent, Panel panou)
         {
+            tabla = new Tabla();
+            culoareCurenta = jucatorCurent;
+            this.panou = panou;
 
-            this.tabla = new Tabla ();
-            this.culoareCurenta = currentPlayer;
-            this.Panou = Panou;
-
-            Panou.Paint += _Paint;
-            Panou.MouseClick += Click;
-
+            panou.Paint += Afiseaza;
+            panou.MouseClick += Click;
+            AflaMiscariValide();
         }
 
+        public void AflaMiscariValide()
+        {
+            Multiplayer multiplayer = FindMultiplayer();
 
+            if (multiplayer == null || multiplayer.EsteTuraMea)
+            {
+                mutariValide = ToateMutarile();
+            }
+            else
+            {
+                mutariValide.Clear();
+            }
+
+            if (multiplayer == null || multiplayer.EsteTuraMea)
+            {
+                panou.Invalidate();
+            }
+        }
+
+        private Multiplayer FindMultiplayer()
+        {
+            Control parent = panou.Parent;
+            while (parent != null)
+            {
+                if (parent is Multiplayer multiplayer)
+                {
+                    return multiplayer;
+                }
+                parent = parent.Parent;
+            }
+            return null;
+        }
 
         public bool MutareValida(int x, int y)
         {
-            if (!CuprindeTabla(x, y) || tabla.Grid[x, y] != null)
+            if (!CuprindeTabla(x, y) || !tabla.EsteLiber(x, y))
             {
-              
                 return false;
             }
 
-            foreach (var (dx, dy) in directions)
+            foreach (var (dx, dy) in directii)
             {
                 int i = x + dx;
                 int j = y + dy;
-                bool foundOpponent = false;
+                bool inamicGasit = false;
 
-                while (CuprindeTabla(i, j) && tabla.Grid[i, j] != null &&
-                       tabla.Grid[i, j].Color != culoareCurenta)
+                while (CuprindeTabla(i, j) && tabla.GetPiesa(i, j) != null &&
+                       tabla.GetPiesa(i, j).Color != culoareCurenta)
                 {
-                    foundOpponent = true;
+                    inamicGasit = true;
                     i += dx;
                     j += dy;
                 }
 
-                if (foundOpponent && CuprindeTabla(i, j) &&
-                    tabla.Grid[i, j] != null &&
-                    tabla.Grid[i, j].Color == culoareCurenta)
-                    return true;
-            }
-            return false;
-        }
-
-
-        private bool CuprindeTabla(int x, int y)
-        {
-            return x >= 0 && x < tabla.Grid.GetLength(0) &&
-                   y >= 0 && y < tabla.Grid.GetLength(1);
-
-        }
-
-        public bool VerificaEndJoc()
-        {
-            
-            
-            List < (int, int)> toateMiscarileCurente= ToateMutarile();
-            if(toateMiscarileCurente.Count==0)
-            {
-                SchimbaCuloareCurenta();
-                toateMiscarileCurente = ToateMutarile();
-                if (toateMiscarileCurente.Count == 0)
+                if (inamicGasit && CuprindeTabla(i, j) &&
+                    tabla.GetPiesa(i, j) != null &&
+                    tabla.GetPiesa(i, j).Color == culoareCurenta)
                 {
                     return true;
                 }
-                else { return false; }
-               
             }
             return false;
-            
-            
-
         }
+
+        private bool CuprindeTabla(int x, int y)
+        {
+            return x >= 0 && x < 8 && y >= 0 && y < 8;
+        }
+
+
 
         public void PunePiesa(int x, int y)
         {
-
-
-            if (culoareCurenta == culoareJucator.White)
-                tabla.Grid[x, y] = new PiesaAlba();
-            else tabla.Grid[x, y] = new PiesaNeagra();
-
-            foreach (var (dx, dy) in directions)
-                InverseazaDirectie(x, y, dx, dy);
            
+            if (culoareCurenta == culoareJucator.Alb)
+            {
+                tabla.SetPiesa(x, y, new PiesaAlba());
+            }
+            else
+            {
+                tabla.SetPiesa(x, y, new PiesaNeagra());
+            }
+
+            foreach (var (dx, dy) in directii)
+            {
+                InverseazaDirectie(x, y, dx, dy);
+            }
+
+            
             SchimbaCuloareCurenta();
 
-
-            //bool end = VerificaEndJoc();
-            //if (end == true)
-            //    Application.Exit();
             
+            List<(int, int)> mutariAdversar = ToateMutarile();
+            if (mutariAdversar.Count == 0)
+            {
+                SchimbaCuloareCurenta();
+                List<(int, int)> mutariCurent = ToateMutarile();
+                if (mutariCurent.Count == 0)
+                {
+                    panou.Invalidate();
+                    MessageBox.Show("Joc terminat!");
+                    return;
+                }
+                else
+                {
+                  
+                    SchimbaCuloareCurenta();
+                }
+            }
 
+            AflaMiscariValide();
+            panou.Invalidate();
         }
+
+
 
 
         private void SchimbaCuloareCurenta()
         {
-            if (culoareCurenta == culoareJucator.White)
+            if (culoareCurenta == culoareJucator.Alb)
             {
-                culoareCurenta = culoareJucator.Black;
-
+                culoareCurenta = culoareJucator.Negru;
             }
             else
             {
-                culoareCurenta = culoareJucator.White;
+                culoareCurenta = culoareJucator.Alb;
             }
         }
-        public List<(int x, int y)>ToateMutarile()
+
+        public List<(int x, int y)> ToateMutarile()
         {
-           List< (int, int )> moves = new List<(int, int)>();
+            var mutari = new List<(int x, int y)>();
 
             for (int x = 0; x < 8; x++)
             {
                 for (int y = 0; y < 8; y++)
                 {
                     if (MutareValida(x, y))
-                        moves.Add((x, y));
+                    {
+                        mutari.Add((x, y));
+                    }
                 }
             }
-
-            return moves;
+            return mutari;
         }
 
         private void InverseazaDirectie(int x, int y, int dx, int dy)
@@ -159,112 +189,125 @@ namespace Proiect
             int i = x + dx;
             int j = y + dy;
 
-
-            while (CuprindeTabla(i, j) && tabla.Grid[i, j] != null &&
-                   tabla.Grid[i, j].Color != culoareCurenta)
+            while (CuprindeTabla(i, j) && tabla.GetPiesa(i, j) != null &&
+                   tabla.GetPiesa(i, j).Color != culoareCurenta)
             {
                 i += dx;
                 j += dy;
             }
 
-
-            if (!CuprindeTabla(i, j) || tabla.Grid[i, j] == null ||
-                tabla.Grid[i, j].Color != culoareCurenta)
+            if (!CuprindeTabla(i, j) || tabla.GetPiesa(i, j) == null ||
+                tabla.GetPiesa(i, j).Color != culoareCurenta)
+            {
                 return;
-
+            }
 
             i -= dx;
             j -= dy;
 
-            while (!(i == x && j == y))
+            while (i != x || j != y)
             {
-               
-                    if(culoareCurenta == culoareJucator.Black)
+                if (culoareCurenta == culoareJucator.Negru)
                 {
-                    tabla.Grid[i, j] = new PiesaNeagra();
+                    tabla.SetPiesa(i, j, new PiesaNeagra());
                 }
-                else { tabla.Grid[i, j] = new PiesaAlba(); }
-                    i -= dx;
+                else
+                {
+                    tabla.SetPiesa(i, j, new PiesaAlba());
+                }
+                i -= dx;
                 j -= dy;
             }
-
-
-
-
         }
+       
 
-
-        private void Click(object sender, MouseEventArgs e)
+        public void Click(object sender, MouseEventArgs e)
         {
-            int usableSize = Panou.Width - 2 * MARGINE;
+            int usableSize = panou.Width - 2 * margine;
             int tileSize = usableSize / 8;
+            int linie = (e.Y - margine) / tileSize;
+            int coloana = (e.X - margine) / tileSize;
 
-            int l = (e.Y - MARGINE) / tileSize; 
-            int c = (e.X - MARGINE) / tileSize;  
-
-
-            if (l >= 0 && l < 8 && c >= 0 && c < 8)
+            if (linie >= 0 && linie < 8 && coloana >= 0 && coloana < 8 && MutareValida(linie, coloana))
             {
-                linieSelectata = l;
-                coloanaSelectata = c;
-                    
-
-                
-                if (MutareValida(l, c))
-                    PunePiesa(l, c);
-                Panou.Invalidate();
-
+                Multiplayer multiplayer = FindMultiplayer();
+                if (multiplayer == null || multiplayer.EsteTuraMea)
+                {
+                    PunePiesa(linie, coloana);
+                    multiplayer?.TrimiteMutare(linie, coloana);
+                }
             }
         }
 
-       
-
-
-        private void _Paint(object sender, PaintEventArgs e)
+        public void Afiseaza(object sender, PaintEventArgs e)
         {
-            g = e.Graphics;
-           
-  
-            int usableSize = Panou.Width - 2 * MARGINE;
+            grafici = e.Graphics;
+            int usableSize = panou.Width - 2 * margine;
             int tileSize = usableSize / 8;
 
+          
             for (int r = 0; r < 8; r++)
             {
                 for (int c = 0; c < 8; c++)
                 {
-                    Piesa piece = tabla.Grid[r, c];
-                    int baseX = MARGINE;
-                    int baseY = MARGINE;
-
-                    if (piece != null)
+                    Piesa piesa = tabla.GetPiesa(r, c);
+                    if (piesa != null)
                     {
-                        
-
                         float scale = 0.8f;
                         int targetSize = (int)(tileSize * scale);
+                        int offsetX = margine + c * tileSize + (tileSize - targetSize) / 2;
+                        int offsetY = margine + r * tileSize + (tileSize - targetSize) / 2;
 
-                        int offsetX = baseX + c * tileSize + (tileSize - targetSize) / 2;
-                        int offsetY = baseY + r * tileSize + (tileSize - targetSize) / 2;
-
-                        piece.Draw(g, offsetX, offsetY, targetSize);
+                        piesa.Deseneaza(grafici, offsetX, offsetY, targetSize);
                     }
                 }
             }
 
-            if (linieSelectata != -1 && coloanaSelectata != -1)
+  
+         
+            if (mutariValide.Count > 0)
             {
-                int x = MARGINE + coloanaSelectata * tileSize;
-                int y = MARGINE + linieSelectata * tileSize;
+                Multiplayer multiplayer = FindMultiplayer();
+                bool showHighlights = multiplayer == null || multiplayer.EsteTuraMea;
 
-                using (Pen p = new Pen(Color.Yellow, 3))
+                if (showHighlights)
                 {
-                    g.DrawRectangle(p, x, y+5, tileSize, tileSize);
+                    foreach (var (x, y) in mutariValide)
+                    {
+                        int px = margine + y * tileSize;
+                        int py = margine + x * tileSize;
+
+                        using (Brush brush = new SolidBrush(Color.FromArgb(120, 32, 178, 170)))
+                        {
+                            grafici.FillRectangle(brush, px + 3, py + 3, tileSize - 6, tileSize - 6);
+                        }
+
+                        using (Pen pen = new Pen(Color.FromArgb(180, 46, 125, 50), 2))
+                        {
+                            grafici.DrawRectangle(pen, px, py, tileSize, tileSize);
+                        }
+                    }
                 }
             }
-
         }
 
+        #region Gettere & Setere
+
+        public culoareJucator CuloareCurenta
+        {
+            get { return culoareCurenta; }
+        }
+
+        public Tabla Tabla
+        {
+            get { return tabla; }
+        }
+
+        public bool EsteTuraMea(culoareJucator jucatorMeu)
+        {
+            return culoareCurenta == jucatorMeu;
+        }
+
+        #endregion Gettere & Setere
     }
 }
-
-
