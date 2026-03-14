@@ -1,5 +1,7 @@
 Un joc de Othello in retea facut in Windows forms 
 
+Image:  https://github.com/Stefan2925/Othello-Game/blob/6999546640c1b3d692bb9b0960dbecbdfe15ad52/Main%20menu.jpg
+
 Jocul prezinta si o documentatie completa, totusi nu am sa o public  
 
 How to play:
