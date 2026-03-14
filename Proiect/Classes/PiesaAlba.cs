@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace Proiect
 {
     public class PiesaAlba : Piesa
     {
-        public PiesaAlba() : base(culoareJucator.Alb)
+        public PiesaAlba() : base(CuloareJucator.Alb)
         {
 
         }

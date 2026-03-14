@@ -14,7 +14,7 @@ namespace Proiect.Forms
 
         private void Retea_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Application.Exit(); // Închide COMPLET aplicația
+            Application.Exit(); 
         }
 
         private void BtnConnectClick(object sender, EventArgs e)
@@ -43,14 +43,16 @@ namespace Proiect.Forms
             this.buttonConnect = new Button();
             this.buttonHost = new Button();
             this.SuspendLayout();
-
+            //
             // textBoxServerIp
+            //
             this.textBoxServerIp.Location = new Point(57, 21);
             this.textBoxServerIp.Name = "textBoxServerIp";
             this.textBoxServerIp.Size = new Size(342, 22);
             this.textBoxServerIp.TabIndex = 0;
-
+            //
             // buttonConnect
+            //
             this.buttonConnect.BackColor = Color.LightBlue;
             this.buttonConnect.Location = new Point(57, 59);
             this.buttonConnect.Name = "buttonConnect";
@@ -59,8 +61,9 @@ namespace Proiect.Forms
             this.buttonConnect.Text = "CONNECT";
             this.buttonConnect.UseVisualStyleBackColor = false;
             this.buttonConnect.Click += BtnConnectClick;
-
+            //
             // buttonHost
+            //
             this.buttonHost.BackColor = Color.LightGreen;
             this.buttonHost.Location = new Point(240, 59);
             this.buttonHost.Name = "buttonHost";
@@ -69,8 +72,9 @@ namespace Proiect.Forms
             this.buttonHost.Text = "HOST GAME";
             this.buttonHost.UseVisualStyleBackColor = false;
             this.buttonHost.Click += BtnHostClick;
-
+            //
             // Retea (this form)
+            //
             this.AutoScaleDimensions = new SizeF(8F, 16F);
             this.AutoScaleMode = AutoScaleMode.Font;
             this.ClientSize = new Size(549, 149);

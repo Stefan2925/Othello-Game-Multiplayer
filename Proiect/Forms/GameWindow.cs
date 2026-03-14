@@ -1,6 +1,4 @@
-﻿using Proiect.Properties;
-using System;
-using System.Drawing;
+﻿using System;
 using System.Windows.Forms;
 
 namespace Proiect
@@ -22,7 +20,7 @@ namespace Proiect
         public GameWindow()
         {
             InitializeComponent();
-            game = new OthelloGame(culoareJucator.Negru, Panou);
+            game = new OthelloGame(CuloareJucator.Negru, Panou);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -48,11 +46,11 @@ namespace Proiect
                     Piesa piesa = game.Tabla.GetPiesa(i, j);
                     if (piesa != null)
                     {
-                        if (piesa.Color == culoareJucator.Negru)
+                        if (piesa.Color == CuloareJucator.Negru)
                         {
                             scorN++;
                         }
-                        else if (piesa.Color == culoareJucator.Alb)
+                        else if (piesa.Color == CuloareJucator.Alb)
                         {
                             scorA++;
                         }
@@ -101,7 +99,7 @@ namespace Proiect
 
         private void BoardPanel(object sender, EventArgs e)
         {
-            // Metodă goală - event handler pentru panou
+          
         }
 
         private void VerificaLaSecunda_Tick(object sender, EventArgs e)

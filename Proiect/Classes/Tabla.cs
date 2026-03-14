@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Proiect
 {
     public class Tabla
     {
-        private Piesa[,] grid;
+        private readonly Piesa[,] grid;
 
         public Tabla()
         {

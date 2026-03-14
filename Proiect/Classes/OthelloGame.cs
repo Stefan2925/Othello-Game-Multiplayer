@@ -1,5 +1,4 @@
 ﻿using Proiect.Forms;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -12,7 +11,7 @@ namespace Proiect
         private List<(int x, int y)> mutariValide = new List<(int x, int y)>();
 
         private const int margine = 30;
-        private culoareJucator culoareCurenta;
+        private CuloareJucator culoareCurenta;
 
         private readonly (int x, int y)[] directii = new (int x, int y)[]
         {
@@ -21,13 +20,13 @@ namespace Proiect
             (1, -1), (1, 0),  (1, 1)
         };
 
-        private Panel panou;
-        private Tabla tabla;
+        private readonly Panel panou;
+        private readonly Tabla tabla;
         private Graphics grafici;
 
       
 
-        public OthelloGame(culoareJucator jucatorCurent, Panel panou)
+        public OthelloGame(CuloareJucator jucatorCurent, Panel panou)
         {
             tabla = new Tabla();
             culoareCurenta = jucatorCurent;
@@ -38,6 +37,8 @@ namespace Proiect
             AflaMiscariValide();
         }
 
+
+        #region Scaneaza Tabla
         public void AflaMiscariValide()
         {
             Multiplayer multiplayer = FindMultiplayer();
@@ -57,19 +58,7 @@ namespace Proiect
             }
         }
 
-        private Multiplayer FindMultiplayer()
-        {
-            Control parent = panou.Parent;
-            while (parent != null)
-            {
-                if (parent is Multiplayer multiplayer)
-                {
-                    return multiplayer;
-                }
-                parent = parent.Parent;
-            }
-            return null;
-        }
+
 
         public bool MutareValida(int x, int y)
         {
@@ -101,6 +90,25 @@ namespace Proiect
             }
             return false;
         }
+        #endregion Scaneaza Tabla
+
+        #region Multiplayer
+        private Multiplayer FindMultiplayer()
+        {
+            Control parent = panou.Parent;
+            while (parent != null)
+            {
+                if (parent is Multiplayer multiplayer)
+                {
+                    return multiplayer;
+                }
+                parent = parent.Parent;
+            }
+            return null;
+        }
+        #endregion Multiplayer
+
+        #region Logica joc
 
         private bool CuprindeTabla(int x, int y)
         {
@@ -111,8 +119,8 @@ namespace Proiect
 
         public void PunePiesa(int x, int y)
         {
-           
-            if (culoareCurenta == culoareJucator.Alb)
+
+            if (culoareCurenta == CuloareJucator.Alb)
             {
                 tabla.SetPiesa(x, y, new PiesaAlba());
             }
@@ -126,25 +134,23 @@ namespace Proiect
                 InverseazaDirectie(x, y, dx, dy);
             }
 
-            
+
             SchimbaCuloareCurenta();
 
-            
+
             List<(int, int)> mutariAdversar = ToateMutarile();
+
             if (mutariAdversar.Count == 0)
             {
                 SchimbaCuloareCurenta();
                 List<(int, int)> mutariCurent = ToateMutarile();
+
+
                 if (mutariCurent.Count == 0)
                 {
                     panou.Invalidate();
                     MessageBox.Show("Joc terminat!");
                     return;
-                }
-                else
-                {
-                  
-                    SchimbaCuloareCurenta();
                 }
             }
 
@@ -157,13 +163,13 @@ namespace Proiect
 
         private void SchimbaCuloareCurenta()
         {
-            if (culoareCurenta == culoareJucator.Alb)
+            if (culoareCurenta == CuloareJucator.Alb)
             {
-                culoareCurenta = culoareJucator.Negru;
+                culoareCurenta = CuloareJucator.Negru;
             }
             else
             {
-                culoareCurenta = culoareJucator.Alb;
+                culoareCurenta = CuloareJucator.Alb;
             }
         }
 
@@ -207,7 +213,7 @@ namespace Proiect
 
             while (i != x || j != y)
             {
-                if (culoareCurenta == culoareJucator.Negru)
+                if (culoareCurenta == CuloareJucator.Negru)
                 {
                     tabla.SetPiesa(i, j, new PiesaNeagra());
                 }
@@ -219,14 +225,15 @@ namespace Proiect
                 j -= dy;
             }
         }
-       
+        #endregion Logica joc
 
+        #region Events
         public void Click(object sender, MouseEventArgs e)
         {
-            int usableSize = panou.Width - 2 * margine;
-            int tileSize = usableSize / 8;
-            int linie = (e.Y - margine) / tileSize;
-            int coloana = (e.X - margine) / tileSize;
+            int tablaExacta = panou.Width - 2 * margine;
+            int patratel = tablaExacta / 8;
+            int linie = (e.Y - margine) / patratel;
+            int coloana = (e.X - margine) / patratel;
 
             if (linie >= 0 && linie < 8 && coloana >= 0 && coloana < 8 && MutareValida(linie, coloana))
             {
@@ -242,10 +249,10 @@ namespace Proiect
         public void Afiseaza(object sender, PaintEventArgs e)
         {
             grafici = e.Graphics;
-            int usableSize = panou.Width - 2 * margine;
-            int tileSize = usableSize / 8;
+            int tablaExacta = panou.Width - 2 * margine;
+            int patratel = tablaExacta / 8;
 
-          
+
             for (int r = 0; r < 8; r++)
             {
                 for (int c = 0; c < 8; c++)
@@ -253,18 +260,18 @@ namespace Proiect
                     Piesa piesa = tabla.GetPiesa(r, c);
                     if (piesa != null)
                     {
-                        float scale = 0.8f;
-                        int targetSize = (int)(tileSize * scale);
-                        int offsetX = margine + c * tileSize + (tileSize - targetSize) / 2;
-                        int offsetY = margine + r * tileSize + (tileSize - targetSize) / 2;
+                        double raportEcran = 0.8;
+                        int tinta = (int)(patratel * raportEcran);
+                        int offsetX = margine + c * patratel + (patratel - tinta) / 2 ;
+                        int offsetY = margine + r * patratel + (patratel - tinta) / 2;
 
-                        piesa.Deseneaza(grafici, offsetX, offsetY, targetSize);
+                        piesa.Deseneaza(grafici, offsetX, offsetY, tinta);
                     }
                 }
             }
 
-  
-         
+
+
             if (mutariValide.Count > 0)
             {
                 Multiplayer multiplayer = FindMultiplayer();
@@ -274,26 +281,29 @@ namespace Proiect
                 {
                     foreach (var (x, y) in mutariValide)
                     {
-                        int px = margine + y * tileSize;
-                        int py = margine + x * tileSize;
+                        int px = margine + y * patratel;
+                        int py = margine + x * patratel;
 
                         using (Brush brush = new SolidBrush(Color.FromArgb(120, 32, 178, 170)))
                         {
-                            grafici.FillRectangle(brush, px + 3, py + 3, tileSize - 6, tileSize - 6);
+                            grafici.FillRectangle(brush, px + 3, py + 3, patratel - 6, patratel - 6);
                         }
 
                         using (Pen pen = new Pen(Color.FromArgb(180, 46, 125, 50), 2))
                         {
-                            grafici.DrawRectangle(pen, px, py, tileSize, tileSize);
+                            grafici.DrawRectangle(pen, px, py, patratel, patratel);
                         }
                     }
                 }
             }
         }
 
-        #region Gettere & Setere
 
-        public culoareJucator CuloareCurenta
+        #endregion Events
+
+        #region Gettere & Settere
+
+        public CuloareJucator CuloareCurenta
         {
             get { return culoareCurenta; }
         }
@@ -303,11 +313,11 @@ namespace Proiect
             get { return tabla; }
         }
 
-        public bool EsteTuraMea(culoareJucator jucatorMeu)
+        public bool EsteTuraMea(CuloareJucator jucatorMeu)
         {
             return culoareCurenta == jucatorMeu;
         }
 
-        #endregion Gettere & Setere
+        #endregion Gettere & Settere
     }
 }

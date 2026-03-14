@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Drawing;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,21 +11,23 @@ namespace Proiect.Forms
     public partial class Multiplayer : GameWindow
     {
         protected bool asteaptaClient { get; private set; } = true;
+        private readonly bool isHost;
+        private bool esteTuraMea;
         private volatile bool inchidereForm = false;
+        private volatile bool running = true;
+
+  
         private TcpListener server;
         private TcpClient client;
         private NetworkStream stream;
-        private bool isHost;
-        private bool esteTuraMea;
-        private culoareJucator culoareaMea;
         private Thread conectareThread;
         private Thread ascultareThread;
-        private volatile bool running = true;
         private Panel panouDeAsteptare;
         private Label etichetaDeAsteptare;
         private Button btnAnulare;
 
 
+        private readonly CuloareJucator culoareaMea;
 
 
         public Multiplayer(bool isHost, string serverIp) : base()
@@ -35,7 +35,7 @@ namespace Proiect.Forms
             if (DesignMode) return;
 
             this.isHost = isHost;
-            culoareaMea = isHost ? culoareJucator.Negru : culoareJucator.Alb;
+            culoareaMea = isHost ? CuloareJucator.Negru : CuloareJucator.Alb;
             esteTuraMea = isHost;
     
 
@@ -54,11 +54,11 @@ namespace Proiect.Forms
             }
             else
             {
-                ArataEcranAsteptare("Conectare la server...");
                 conectareThread = new Thread(() => ConectareLaServer(serverIp));
                 conectareThread.Start();
             }
         }
+
         public bool EsteTuraMea
         {
             get { return esteTuraMea; }
@@ -148,7 +148,7 @@ namespace Proiect.Forms
         #endregion Client+Server
 
 
-#region Aspect Grafic
+        #region Aspect Grafic
         protected override CreateParams CreateParams
         {
             get
@@ -161,14 +161,13 @@ namespace Proiect.Forms
         }
         private void ArataEcranAsteptare(string text)
         {
-            if (DesignMode) return;
+            if (DesignMode || panouDeAsteptare != null) return;
 
             panouDeAsteptare = new Panel
             {
                 BackColor = Color.FromArgb(128, Color.Black),
                 Dock = DockStyle.Fill
             };
-            panouDeAsteptare.BringToFront();
 
             etichetaDeAsteptare = new Label
             {
@@ -179,6 +178,7 @@ namespace Proiect.Forms
                 Location = new Point(100, 100),
                 TextAlign = ContentAlignment.MiddleCenter
             };
+
             btnAnulare = new Button
             {
                 Text = "Anuleaza",
@@ -188,111 +188,104 @@ namespace Proiect.Forms
                 FlatAppearance = { BorderSize = 0 },
                 Font = new Font("Arial", 16, FontStyle.Bold),
                 Size = new Size(150, 50),
-                Location = new Point((this.ClientSize.Width - 150) / 2, 250)
+                Location = new Point((ClientSize.Width - 150) / 2, 250)
             };
             btnAnulare.FlatAppearance.MouseOverBackColor = Color.FromArgb(200, 255, 70, 70);
             btnAnulare.Click += (s, e) => { this.Close(); };
 
             panouDeAsteptare.Controls.Add(etichetaDeAsteptare);
             panouDeAsteptare.Controls.Add(btnAnulare);
-            this.Controls.Add(panouDeAsteptare);
-            this.Controls.SetChildIndex(panouDeAsteptare, 0);
-
-
-            btnAnulare.FlatAppearance.MouseOverBackColor = Color.FromArgb(200, 255, 70, 70);
-            btnAnulare.Click += (s, e) => { this.Close();
-    };
-
-            panouDeAsteptare.Controls.Add(etichetaDeAsteptare);
-            panouDeAsteptare.Controls.Add(btnAnulare);
-    this.Controls.Add(panouDeAsteptare);
-    this.Controls.SetChildIndex(panouDeAsteptare, 0);
-    }
-
+            Controls.Add(panouDeAsteptare);
+            Controls.SetChildIndex(panouDeAsteptare, 0);
+        }
         private void AscundeEcranAsteptare()
         {
             asteaptaClient = false;
 
-            if (panouDeAsteptare != null)
-            {
-                if (panouDeAsteptare.Parent != null)
-                    panouDeAsteptare.Parent.Controls.Remove(panouDeAsteptare);
+            panouDeAsteptare?.Dispose();        
+            etichetaDeAsteptare?.Dispose();       
+            btnAnulare?.Dispose();               
 
-                panouDeAsteptare.Dispose();
-                panouDeAsteptare = null;
-                etichetaDeAsteptare?.Dispose();
-                btnAnulare?.Dispose();
-                etichetaDeAsteptare = null;
-            }
+            panouDeAsteptare = null;            
+            etichetaDeAsteptare = null;           
+            btnAnulare = null;                     
         }
 
         #endregion Aspect Grafic
 
 
         #region Transfer Date/Mutari
-        public void TrimiteMutare(int row, int col)
+        public void TrimiteMutare(int rand, int coloana)
         {
-            if (!esteTuraMea || stream == null)
-                return;
+            if (!esteTuraMea || stream == null) return;
 
-            string mutare = $"{row},{col}<|EOM|>";
+           
+            string mutare = $"M{rand:00},{coloana:00}|END|";
             byte[] bytes = Encoding.UTF8.GetBytes(mutare);
+
+           
+            byte[] lungime = BitConverter.GetBytes(bytes.Length);
+            stream.Write(lungime, 0, 4);
             stream.Write(bytes, 0, bytes.Length);
 
             esteTuraMea = false;
-            game.AflaMiscariValide();
+            this.Invoke((MethodInvoker)(() => game.AflaMiscariValide()));
         }
 
         private void PrimesteMutariContinuu()
         {
-            byte[] buffer = new byte[1024];
+            byte[] lungimeBuffer = new byte[4];  
 
-            while (running && !inchidereForm)  // Adaugă verificarea
+            while (running && !inchidereForm)
             {
                 try
                 {
-                    if (stream == null || !stream.CanRead || inchidereForm)
-                        break;
+                    if (stream == null || !stream.CanRead) break;
 
-                    if (stream.DataAvailable)
+                    
+                    int bytesLungime = stream.Read(lungimeBuffer, 0, 4);
+                    if (bytesLungime < 4) break;
+
+                    int lungimeMesaj = BitConverter.ToInt32(lungimeBuffer, 0);
+                    byte[] bufferMesaj = new byte[lungimeMesaj]; 
+
+                    
+                    int totalCitit = 0;
+                    while (totalCitit < lungimeMesaj)
                     {
-                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                        if (bytesRead == 0)
-                            break;
-
-                        string mesaj = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                        if (mesaj.Contains("<|EOM|>") && !inchidereForm)
-                        {
-                            string[] parts = mesaj.Split(',');
-                            if (parts.Length >= 2)
-                            {
-                                int row = int.Parse(parts[0]);
-                                int col = int.Parse(parts[1].Split('<')[0]);
-
-                                if (!inchidereForm)
-                                {
-                                    this.Invoke((MethodInvoker)(() =>
-                                    {
-                                        if (!inchidereForm)
-                                        {
-                                            game.PunePiesa(row, col);
-                                            esteTuraMea = true;
-                                            game.AflaMiscariValide();
-                                        }
-                                    }));
-                                }
-                            }
-                        }
+                        int citit = stream.Read(bufferMesaj, totalCitit, lungimeMesaj - totalCitit);
+                        if (citit == 0) break;
+                        totalCitit += citit;
                     }
-                    else
+
+                    if (totalCitit == lungimeMesaj)
                     {
-                        Thread.Sleep(16);
+                        string mesaj = Encoding.UTF8.GetString(bufferMesaj);
+                        ProceseazaMutare(mesaj);
                     }
                 }
-                catch
+                catch { break; }
+
+                Thread.Sleep(1);
+            }
+        }
+
+        private void ProceseazaMutare(string mesaj)
+        {
+            if (mesaj.StartsWith("M") && mesaj.Contains("|END|"))
+            {
+                string date = mesaj.Substring(1).Split('|')[0];  // "3,4"
+                string[] parts = date.Split(',');
+
+                if (parts.Length == 2 && int.TryParse(parts[0], out int rand) &&
+                    int.TryParse(parts[1], out int coloana))
                 {
-                    break;
+                    this.Invoke((MethodInvoker)(() =>
+                    {
+                        game.PunePiesa(rand, coloana);
+                        esteTuraMea = true;
+                        game.AflaMiscariValide();
+                    }));
                 }
             }
         }
@@ -302,13 +295,12 @@ namespace Proiect.Forms
 
 
         #region Override la InchidereForm
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             running = false;
             inchidereForm = true;
-            base.OnFormClosing(e);
 
-    
             if (panouDeAsteptare?.Parent != null)
                 panouDeAsteptare.Parent.Controls.Remove(panouDeAsteptare);
             panouDeAsteptare?.Dispose();
@@ -324,17 +316,17 @@ namespace Proiect.Forms
             client?.Dispose();
             server?.Stop();
 
-         
             conectareThread = null;
             ascultareThread = null;
             stream = null;
             client = null;
             server = null;
-        }
 
+            base.OnFormClosing(e);
+        }
 
         #endregion Override la inchidereForm
 
-       
+
     }
 }

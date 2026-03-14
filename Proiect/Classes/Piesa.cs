@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Drawing;
 
 namespace Proiect
 {
    
-        public enum culoareJucator{ Negru, Alb }
+        public enum CuloareJucator{ Negru, Alb }
 
     public abstract class Piesa
     {
-        private culoareJucator color;
+        private CuloareJucator color;
 
-        public culoareJucator Color
+        public CuloareJucator Color
         {
             get { return color; }
             set { color = value; }
         }
        
 
-        public Piesa(culoareJucator color)
+        public Piesa(CuloareJucator color)
         {
             Color = color;
         }
